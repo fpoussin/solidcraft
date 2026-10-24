@@ -181,3 +181,51 @@ Credential entry, native credential integration, guided setup, Home/Preferences
 integration, and end-to-end application evidence remain unfinished. User-facing
 documentation must remain marked unreleased until those paths have been
 exercised in the app.
+
+
+## Guided setup and native credentials
+
+`solidcraft_cloud::setup` validates provider identifiers, creates stable per-repository
+connection identities, and supplies the prefilled GitHub token link. Host setup stays
+separate from publication. Another provider can supply its setup module without
+changing snapshot or outbox code.
+
+`cloud.connect` submits `Operation::Setup` with a proposed connection and an opaque
+credential identifier. It returns an operation id and, when ready, a verified connection;
+it does not change preferences. The UI merges that result into current settings and uses
+`cloud.configure` to apply it durably. Cancelling before Apply leaves settings unchanged.
+Setup jobs remain accessible if the user changes document tabs.
+
+Secrets enter `Host::store_credential` directly, outside serializable engine parameters
+and command/crash logs. Replacement tokens have separate local identifiers, so a failed
+reconnect cannot overwrite a working connection's token. Credential records left by an
+abandoned setup are local only. Native `NativeAccess` is injected by the desktop app:
+keyring stores tokens under the `SolidCraft cloud saves` service, and Octocrab uses the
+existing ureq transport with OS certificate verification, bounded responses, no redirects
+and a 30-second HTTP deadline. Its local executor is created on the cloud worker thread.
+Cancellation is checked before/after native HTTP requests; an in-flight native setup
+request may take up to that deadline to stop. Browser setup reuses cancellable Fetch and
+its separate IndexedDB credential store.
+
+The shared Octocrab setup adapter inspects the selected repository, adopts its default
+branch, creates a README only for an empty repository, and tests Contents write permission
+by updating the observed branch ref to its existing SHA with `force=false`. This creates
+no design revision; a concurrent branch advance rejects the probe safely. Existing files
+are never overwritten by initialization. Read-only/archived repositories and HTTP access
+failures leave local queues untouched.
+
+Native setup clones into an automatically cleaned temporary directory, validates the
+clone, then renames it into that connection's private checkout. Retries reuse the checkout
+only after verifying its origin and selected branch. HTTPS credentials use Git's standard
+credential-helper protocol with a fixed helper and connection-specific environment values.
+The helper answers only for HTTPS, `github.com`, and the exact selected repository path;
+it ignores store/erase calls. Tokens never enter argv, URLs, Git config or diagnostic output.
+Redirects and Git trace output are disabled for token-authenticated commands; effective
+fetch/push URL rewrites are checked before publication. System authentication is retained
+for connections that select it. Token lookup happens only for network operations, so an
+unavailable keychain does not prevent local checkout opens. Commits use the configured Git
+identity; missing identity fields get per-command fallbacks without editing Git config.
+
+The initial Start entry opens this wizard. The complete Home repository list and Cloud
+Saves preference editor are separate remaining UI work. All setup labels cover the 25
+supported locale catalogs, including en-GB.

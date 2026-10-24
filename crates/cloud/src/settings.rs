@@ -160,7 +160,7 @@ impl HostSetup for GitHub {
         "github"
     }
     fn create_repository_url(&self) -> &'static str {
-        "https://github.com/new?name=solidcraft-designs&visibility=private&owner=%40me"
+        "https://github.com/new?name=solidcraft-designs&visibility=private"
     }
     fn create_token_url(&self) -> &'static str {
         "https://github.com/settings/personal-access-tokens/new?name=SolidCraft&description=Save+SolidCraft+designs&contents=write&metadata=read&expires_in=365"
