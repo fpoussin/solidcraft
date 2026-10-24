@@ -29,6 +29,23 @@ SolidCraft-specific code remains responsible for project layout, version compati
 
 See [drawing and collaboration integration](cloud-collaboration.md) for compatibility with separate drawing files (#3890) and the existing seams for later collaborative work. Collaboration is not part of this implementation.
 
+### Start-page command client
+
+`crates/ui-egui/src/cloud_browser.rs` lists project designs through `cloud.list`,
+opens them through `cloud.open`, and chooses initial `cloud.save` destinations.
+Its per-connection catalogs are disposable presentation caches. Failed refreshes
+retain displayed entries, and the platform host remains authoritative for offline
+availability, version checks and publication. Large catalogs use virtual scrolling.
+Known occupied names are rejected in the picker; publication still handles races.
+
+A completed download runs `cloud.open.finish` in an isolated session through
+`Session::cloud_open_session`, then follows normal document-tab adoption. Edits and
+tab changes during networking cannot replace the current design. Destination
+choices retain the originating tab and document and are cancelled if it changes.
+Close/Quit waits for the picker and durable local acknowledgement. New designs use
+the default cloud destination picker for normal Save; existing disk files continue
+using their disk destination. Repository selection never changes the saved default.
+
 ### Authentication protocols
 
 If OAuth is added for a host, use `oauth2` rather than implementing authorization-code/PKCE, device polling, or token-refresh protocols. An isolated `oauth2 = { version = "=5.0.0", default-features = false, features = ["reqwest"] }` probe compiled real PKCE and device-authorization builders on both native and `wasm32-unknown-unknown`. The probe executed no authorization requests. The crate offers custom HTTP clients as well as reqwest. [Published OAuth2 API](https://docs.rs/oauth2/5.0.0/oauth2/)
