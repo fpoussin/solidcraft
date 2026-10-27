@@ -5233,10 +5233,11 @@ dependencies = [
 
 [[package]]
 name = "solidcraft-cloud"
-version = "0.24.1"
+version = "0.27.1"
 dependencies = [
  "base64 0.23.1",
  "bytes",
+ "futures-util",
  "http",
  "http-body-util",
  "octocrab",
@@ -5337,6 +5338,7 @@ dependencies = [
  "cadmpeg-registry",
  "chardetng",
  "encoding_rs",
+ "futures-lite",
  "gethostname",
  "gltf",
  "log",
